@@ -1,5 +1,8 @@
+import string
 # train a miniature character-level shakespeare model
 # good for debugging and playing on macbooks and such
+
+seed=42
 
 out_dir = None # infer from wandb params
 eval_interval = 250 # keep frequent because we'll overfit
@@ -18,7 +21,10 @@ wandb_group = None
 data_type='text'
 data_format='reverse'
 operator='+'
-dataset = 'bal'
+fill_block=True
+dataset = 'addition'
+automaton_config = {}
+
 batch_size = 256
 eval_batch_size = 256 * 4
 block_size = 256 # context of up to 256 previous characters
@@ -32,11 +38,13 @@ online = True
 train_data_path = f'train_3digit_{num_train}.txt'
 # val_data_path = 'val.bin'
 resume = False
+resume_dir = None
 ckpt_name = None
 reverse_c = True
 eval_addition = True
 start = "FILE:data/bal/test_10000.txt"
 eval_addition_train = True
+check_leak = True
 # start_train = "FILE:data/one-sided-subtraction/plain/add_examples_10000_trainprompt.txt"
 
 # n_layer = 16
@@ -62,8 +70,13 @@ dropout = 0.2
 # dropout = 0.0
 
 init_from = None
+tokenizer = init_from
 init_pretrained = False
 pos_emb_type = 'standard'
+prune_embeddings = False
+chars = sorted(list(set(string.ascii_lowercase + string.ascii_uppercase + string.digits + string.punctuation + ' \n')))
+freeze_keywords = []
+freeze_except = []
 
 learning_rate = 1e-3 # with baby networks can afford to go a bit higher
 weight_decay = 1e-1
@@ -71,6 +84,8 @@ weight_decay = 1e-1
 max_iters = 20000
 lr_decay_iters = max_iters # make equal to max_iters usually
 beta2 = 0.99 # make a bit bigger because number of tokens per iter is small
+grad_clip = 1.0
+use_lora = True
 
 warmup_iters = 100 # not super necessary potentially
 
@@ -92,20 +107,20 @@ do_per_digit_eval = False
 do_carry_type_eval = False
 
 use_hookedtransformer = False
+random_order = True
 
 n_digit = 3
 ary = 2 if data_format == 'binary' else 10
-train_digit_dist = 'constant'
+train_digit_dist = {}
 
 pad_token = '#'
 eos_token = '\n'
-
-train_dataset = 'addition'
+add_extra_tokens = False
 
 use_saved_config = False
 override_eval_file = False # override the saved config if resume is True
 
-config_keys = [k for k,v in globals().items() if not k.startswith('_') and isinstance(v, (int, float, bool, str, type(None)))]
+config_keys = [k for k,v in globals().items() if not k.startswith('_') and isinstance(v, (int, float, bool, str, type(None), dict, list))]
 import os
 dir_path = os.path.dirname(os.path.realpath(__file__))
 configurator_path = os.path.join(dir_path, 'configurator.py')

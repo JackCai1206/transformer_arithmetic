@@ -16,7 +16,7 @@ class Logger:
         if not os.path.exists(folder):
             os.makedirs(folder)
         log_files = glob.glob(os.path.join(folder, f'log_*.csv'))
-        self.log = open(os.path.join(folder, f'log_{datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")}.csv'), 'w')
+        self.log = open(os.path.join(folder, f"log_run-{config['wandb_run_id']}.csv"), 'w')
         fieldnames = ['it', 'train_loss', 'train_acc', 'val_loss', 'val_acc']
         min_eval_len = config['min_eval_len'] if config['do_length_gen_eval'] else config['n_digit']
         max_eval_len = config['max_eval_len'] if config['do_length_gen_eval'] else config['n_digit']

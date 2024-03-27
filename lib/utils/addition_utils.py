@@ -3,11 +3,11 @@ import random
 import numpy as np
 from random import shuffle, randint
 
-def get_char_encode_decode():
+def get_char_encode_decode(chars=None):
     extra_tokens = []
 
     # get all the unique characters that occur in this text
-    chars = sorted(list(set(string.ascii_lowercase + string.ascii_uppercase + string.digits + string.punctuation + ' \n')))
+    chars = chars or sorted(list(set(string.ascii_lowercase + string.ascii_uppercase + string.digits + string.punctuation + ' \n')))
     if extra_tokens:
         assert all([c not in chars for c in extra_tokens])
         chars += extra_tokens
@@ -23,17 +23,25 @@ def get_char_encode_decode():
 
     return encode, decode, vocab_size
 
-def sample_n_digit(n_digit, dist='constant', params=None):
+def sample_n_digit_old(n_digit, dist='constant', params=None):
     if dist == 'constant':
         return n_digit
     elif dist == 'uniform':
         return random.randint(2, params)
     elif dist == 'zipf':
-        return min(np.random.zipf(params) + 2, 15)
+        return max(n_digit, min(np.random.zipf(params) + n_digit - 1, 20))
     elif dist == 'poisson':
-        return min(np.random.poisson(n_digit), 15)
+        return max(n_digit, min(np.random.poisson(n_digit), 20))
     else:
         raise ValueError(f'Unknown distribution: {dist}')
+
+def sample_n_digit(n_digit, distrib):
+    digits, probs = zip(*distrib.items()) if len(distrib) > 0 and isinstance(distrib, dict) else ([], [])
+    digits = list(digits) + [n_digit]
+    probs = list(probs) + [1 - sum(probs)]
+    assert len(digits) == len(probs)
+    assert np.isclose(sum(probs), 1)
+    return np.random.choice(digits, p=probs)
 
 def generate_sample(n_digit, ary=10, carries=None, sampling_method='carry-first'):
     if sampling_method == 'carry-first':
